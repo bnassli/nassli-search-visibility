@@ -1,0 +1,11 @@
+{
+  "_template_note": "Illustrative ONLY. Remove this note/placeholder values before publication. Do not include offers/ratings/certs unless visible and verified.",
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": "PENDING_VERIFIED_PRODUCT_NAME",
+  "sku": "PENDING_VERIFIED_ORDER_CODE",
+  "description": "PENDING_ENGINEER_APPROVED_DESCRIPTION",
+  "image": ["PENDING_ACTUAL_PUBLIC_PRODUCT_IMAGE_URL"],
+  "brand": {"@type": "Brand", "name": "Nassli LED — VERIFY"},
+  "url": "PENDING_EXISTING_PRODUCT_URL"
+}

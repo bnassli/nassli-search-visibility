@@ -1,0 +1,24 @@
+name: SEO implementation task
+description: Small, verifiable task for the joint roadmap
+labels: []
+body:
+  - type: textarea
+    id: context
+    attributes:
+      label: Baseline and business problem
+      description: Link relevant pages and evidence; don't guess metrics.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Include measurable checks and Arabic/English where needed.
+    validations:
+      required: true
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Safety / approvals / rollback
+    validations:
+      required: true

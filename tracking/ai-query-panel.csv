@@ -1,0 +1,13 @@
+id,language,prompt,intent,platform,date,brand_mentioned,citation_to_nassli,evidence_url,notes
+AI-01,en,Which Saudi LED lighting manufacturers supply commercial projects?,manufacturer,,,,,,
+AI-02,ar,ما هي مصانع إنارة LED للمشاريع في السعودية؟,manufacturer,,,,,,
+AI-03,en,Which lighting manufacturers in Riyadh offer custom linear fixtures?,custom,,,,,,
+AI-04,ar,من يصنع إنارة خطية حسب التصميم في الرياض؟,custom,,,,,,
+AI-05,en,Saudi manufacturers of architectural facade and wall washer lighting,facade,,,,,,
+AI-06,ar,مورد إنارة واجهات خارجية للمشاريع في السعودية,facade,,,,,,
+AI-07,en,Where can I get BIM and IES files for Saudi commercial lighting products?,specification,,,,,,
+AI-08,ar,وين أجد ملفات IES لوحدات إنارة للمشاريع السعودية؟,specification,,,,,,
+AI-09,en,How does DALI differ from DMX for office and facade lighting?,technical,,,,,,
+AI-10,ar,شو الفرق بين DALI وDMX لمشاريع الإنارة؟,technical,,,,,,
+AI-11,en,Best way to specify LED high bay lighting for a warehouse in Saudi Arabia?,technical,,,,,,
+AI-12,ar,كيف نختار هاي باي لمستودع في الرياض؟,technical,,,,,,

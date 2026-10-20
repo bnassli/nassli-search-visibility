@@ -1,0 +1,30 @@
+cluster,language,query,intent,priority,landing_page_status
+factory,en,LED lighting manufacturer Saudi Arabia,commercial,P0,planned
+factory,ar,مصنع إنارة LED في السعودية,commercial,P0,planned
+factory,en,LED light factory Riyadh,commercial,P0,planned
+factory,ar,مصنع انارة بالرياض,commercial,P0,planned
+custom,en,custom LED lighting manufacturer Saudi Arabia,commercial,P0,planned
+custom,ar,تصنيع إنارة حسب الطلب,commercial,P0,planned
+linear,en,custom linear LED lighting KSA,commercial,P0,planned
+linear,ar,إنارة خطية حسب التصميم,commercial,P0,planned
+linear,en,linear pendant lighting manufacturer,commercial,P1,planned
+facade,en,architectural facade lighting Saudi Arabia,commercial,P0,planned
+facade,ar,إنارة واجهات مباني الرياض,commercial,P0,planned
+facade,en,LED wall washer supplier KSA,commercial,P1,planned
+industrial,en,industrial LED high bay Saudi Arabia,commercial,P0,planned
+industrial,ar,انارة هاي باي للمستودعات,commercial,P0,planned
+industrial,en,warehouse LED lighting supplier Riyadh,commercial,P1,planned
+office,en,office lighting manufacturer Saudi Arabia,commercial,P1,planned
+office,ar,إنارة مكاتب تجارية السعودية,commercial,P1,planned
+outdoor,en,outdoor LED uplight Saudi supplier,commercial,P1,planned
+outdoor,ar,انارة خارجية للمشاريع,commercial,P1,planned
+controls,en,DALI lighting supplier Saudi Arabia,commercial,P1,planned
+controls,ar,إنارة بنظام دالي DALI,commercial,P1,planned
+controls,en,DALI vs DMX architectural lighting,informational,P1,planned
+controls,ar,الفرق بين DALI و DMX في الانارة,informational,P1,planned
+technical,en,IP65 vs IP67 outdoor luminaires,informational,P1,planned
+technical,ar,الفرق بين IP65 و IP67 بالانارة,informational,P1,planned
+projects,en,project lighting supplier Riyadh,commercial,P0,planned
+projects,ar,مورد انارة مشاريع في الرياض,commercial,P0,planned
+rfq,en,commercial lighting quotation Saudi Arabia,transactional,P0,planned
+rfq,ar,طلب عرض سعر إنارة مشاريع,transactional,P0,planned

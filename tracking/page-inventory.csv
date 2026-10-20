@@ -1,0 +1,5 @@
+url,page_type,lang,current_state,priority,target_intent,owner,technical_review,notes
+https://nassli-led.com.sa/,homepage,en,publicly_observed,P0,manufacturer_brand,marketing,pending,On-page H1 currently generic; verify all metadata in audit
+https://nassli-led.com.sa/products/,catalog,en,publicly_observed,P0,product_discovery,marketing,pending,Plan internal linking
+https://nassli-led.com.sa/our-lighting/,category,en,publicly_observed,P1,architectural_lighting,marketing,pending,Map actual translated URL before hreflang
+https://nassli-led.com.sa/product/led-up-light/,product,en,publicly_observed,P0,outdoor_led_uplight,sales_engineer,pending,Inspect duplicated tables and RFQ CTA

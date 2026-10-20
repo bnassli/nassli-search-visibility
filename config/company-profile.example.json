@@ -1,0 +1,15 @@
+{
+  "NOTE": "TEMPLATE ONLY. None of the pending values below should be published until checked with official documents.",
+  "canonical_company_name_ar": "PENDING_VERIFICATION",
+  "canonical_company_name_en": "Nassli LED — PENDING_VERIFICATION",
+  "legal_entity_name": "PENDING_VERIFICATION",
+  "factory_founded_year": "PENDING_VERIFICATION",
+  "group_founded_year_if_different": "PENDING_VERIFICATION",
+  "logo_url": "PENDING_VERIFICATION",
+  "public_website": "https://nassli-led.com.sa/",
+  "public_address": "Second Industrial City, Riyadh, Saudi Arabia — VERIFY",
+  "official_contacts": {"email": "info@nassli-led.com.sa — VERIFY", "phone": "+966 59 406 6470 — VERIFY"},
+  "social_profiles": [],
+  "verified_certifications": [],
+  "approvals": {"marketing": false, "technical": false, "management": false}
+}

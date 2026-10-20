@@ -1,0 +1,23 @@
+## Issue and owner
+Closes #
+
+## Baseline / reason
+
+## What changed
+
+## SEO impact hypothesis (not guaranteed)
+
+## Evidence & validation
+- [ ] Unit tests run and pass (paste output)
+- [ ] No new crawl/indexing risk; robots/canonicals/redirects reviewed
+- [ ] Arabic/English + desktop/mobile reviewed where applicable
+- [ ] Product claims, brand details, project permissions verified
+- [ ] No secrets or private client data in diff
+- [ ] Staging screenshots / URL attached for visual changes
+- [ ] Rollback procedure recorded
+- [ ] Analytics / RFQ measurement affected? Documented
+
+## Rollback
+
+## Handoff to next agent
+
