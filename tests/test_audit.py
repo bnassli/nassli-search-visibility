@@ -1,4 +1,6 @@
 import unittest
+from unittest import mock
+from src.nassli_audit import audit
 from src.nassli_audit.audit import (PageHTML, analyze_html, validate_config, to_markdown, schema_issues,
                                     schema_facts, is_placeholder_sku, cross_page_checks, classify_sitemap_urls,
                                     summarize_sitemap, sitemap_site_issues)
@@ -87,6 +89,21 @@ class TestAnalysis(unittest.TestCase):
         self.assertIn('arabic_page_mostly_untranslated', result['issues'])
         self.assertIn('canonical_to_original_on_untranslated_review', result['issues'])
         self.assertNotIn('canonical_conflicts_with_hreflang', result['issues'])
+
+    def test_fallback_exemption_only_for_its_own_original(self):
+        # Codex repro: same fallback page, canonical changed to an unrelated Arabic page.
+        html = LIVE_AR_FALLBACK_PRODUCT.replace('<link rel="canonical" href="https://nassli-led.com.sa/product/led-up-light/" />',
+                                                '<link rel="canonical" href="https://nassli-led.com.sa/ar/unrelated/" />')
+        result = analyze_html(html, 'https://nassli-led.com.sa/ar/product/led-up-light/')
+        self.assertIn('canonical_conflicts_with_hreflang', result['issues'])
+        self.assertNotIn('canonical_to_original_on_untranslated_review', result['issues'])
+
+    def test_fallback_without_language_mapping_is_unverified(self):
+        html = LIVE_AR_FALLBACK_PRODUCT.replace('<link rel="alternate" hreflang="ar" href="https://nassli-led.com.sa/ar/product/led-up-light/" />', '')
+        html = html.replace('<link rel="alternate" hreflang="en" href="https://nassli-led.com.sa/product/led-up-light/" />', '')
+        result = analyze_html(html, 'https://nassli-led.com.sa/ar/product/led-up-light/')
+        self.assertIn('canonical_relationship_unverified_review', result['issues'])
+        self.assertNotIn('canonical_to_original_on_untranslated_review', result['issues'])
 
     def test_translated_menu_does_not_hide_untranslated_main_content(self):
         # Live case: Arabic header/footer around an English product body gave 62% body-wide but 3% in <main>.
@@ -204,12 +221,47 @@ SITEMAP_INDEX = '''<?xml version="1.0" encoding="UTF-8"?>
 <sitemap><loc>https://nassli-led.com.sa/wp-sitemap-users-1.xml</loc></sitemap>
 </sitemapindex>'''
 
-URLSET_WITH_ALTERNATES = '''<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+XHTML = 'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml"'
+
+# One-way: the English entry names an Arabic alternate, the Arabic entry does not link back.
+URLSET_WITH_ALTERNATES = f'''<?xml version="1.0" encoding="UTF-8"?>
+<urlset {XHTML}>
 <url><loc>https://nassli-led.com.sa/product/led-up-light/</loc>
 <xhtml:link rel="alternate" hreflang="en" href="https://nassli-led.com.sa/product/led-up-light/"/>
 <xhtml:link rel="alternate" hreflang="ar" href="https://nassli-led.com.sa/ar/product/led-up-light/"/></url>
 <url><loc>https://nassli-led.com.sa/ar/product/led-up-light/</loc></url>
+</urlset>'''
+
+# Genuine XML-only coverage with no '/ar/' path shortcut: Arabic URL uses ?lang=ar, mapping is reciprocal.
+URLSET_RECIPROCAL_NO_AR_PATH = f'''<?xml version="1.0" encoding="UTF-8"?>
+<urlset {XHTML}>
+<url><loc>https://nassli-led.com.sa/product/led-linear/</loc>
+<xhtml:link rel="alternate" hreflang="en" href="https://nassli-led.com.sa/product/led-linear/"/>
+<xhtml:link rel="alternate" hreflang="ar" href="https://nassli-led.com.sa/product/led-linear/?lang=ar"/></url>
+<url><loc>https://nassli-led.com.sa/product/led-linear/?lang=ar</loc>
+<xhtml:link rel="alternate" hreflang="en" href="https://nassli-led.com.sa/product/led-linear/"/>
+<xhtml:link rel="alternate" hreflang="ar" href="https://nassli-led.com.sa/product/led-linear/?lang=ar"/></url>
+</urlset>'''
+
+# Codex repro: English-only entry with an Arabic annotation that has no target at all.
+URLSET_ALTERNATE_WITHOUT_HREF = f'''<?xml version="1.0" encoding="UTF-8"?>
+<urlset {XHTML}>
+<url><loc>https://nassli-led.com.sa/product/led-linear/</loc><xhtml:link rel="alternate" hreflang="ar"/></url>
+</urlset>'''
+
+# One-way XML-only (no '/ar/' path): target is listed but never links back.
+URLSET_ONE_WAY_NO_AR_PATH = f'''<?xml version="1.0" encoding="UTF-8"?>
+<urlset {XHTML}>
+<url><loc>https://nassli-led.com.sa/product/led-linear/</loc>
+<xhtml:link rel="alternate" hreflang="ar" href="https://nassli-led.com.sa/product/led-linear/?lang=ar"/></url>
+<url><loc>https://nassli-led.com.sa/product/led-linear/?lang=ar</loc></url>
+</urlset>'''
+
+# Generic child (filename says nothing) holding an author archive and an ordinary URL containing "users".
+URLSET_GENERIC_CHILD = '''<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<url><loc>https://nassli-led.com.sa/author/example-review-fixture/</loc></url>
+<url><loc>https://nassli-led.com.sa/products/users-guide/</loc></url>
 </urlset>'''
 
 URLSET_ENGLISH_ONLY = '''<?xml version="1.0" encoding="UTF-8"?>
@@ -233,12 +285,39 @@ class TestSitemaps(unittest.TestCase):
         summary = summarize_sitemap(URLSET_ENGLISH_ONLY)
         self.assertIn('sitemap_lists_theme_templates', classify_sitemap_urls(summary['locs']))
 
+    def test_author_archive_detected_by_url_not_filename(self):
+        locs = summarize_sitemap(URLSET_GENERIC_CHILD)['locs']
+        self.assertEqual(classify_sitemap_urls(locs), ['sitemap_exposes_user_archives'])
+        self.assertEqual(classify_sitemap_urls(["https://nassli-led.com.sa/products/users-guide/"]), [])
+        self.assertEqual(classify_sitemap_urls(["https://nassli-led.com.sa/ar/author/x/"]), ['sitemap_exposes_user_archives'])
+        self.assertEqual(classify_sitemap_urls(["https://nassli-led.com.sa/team/x/"], author_bases=["team"]),
+                         ['sitemap_exposes_user_archives'])
+
+    def test_full_discovery_path_with_generic_child(self):
+        # Codex repro: index -> generic child -> author URL must surface as a site issue.
+        index = '''<?xml version="1.0"?><sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<sitemap><loc>https://nassli-led.com.sa/misc.xml</loc></sitemap></sitemapindex>'''
+        responses = {"https://nassli-led.com.sa/robots.txt": "Sitemap: https://nassli-led.com.sa/sitemap.xml",
+                     "https://nassli-led.com.sa/sitemap.xml": index,
+                     "https://nassli-led.com.sa/misc.xml": URLSET_GENERIC_CHILD}
+
+        def fake_fetch(url, agent, timeout=15):
+            if url in responses:
+                return {"url": url, "status": 200, "body": responses[url]}
+            return {"url": "https://nassli-led.com.sa/", "status": 200, "body": ""}
+
+        with mock.patch.object(audit, "fetch_text", fake_fetch), mock.patch.object(audit.time, "sleep"):
+            discovery = audit._audit_discovery("https://nassli-led.com.sa", "test", 5, 0, ["en"])
+        self.assertIn('sitemap_exposes_user_archives', discovery['issues'])
+
     def test_nested_index_and_alternates(self):
         index = summarize_sitemap(SITEMAP_INDEX)
         self.assertEqual((index['type'], index['url_count']), ('sitemapindex', 3))
         child = summarize_sitemap(URLSET_WITH_ALTERNATES)
         self.assertEqual((child['type'], child['url_count'], child['arabic_locs']), ('urlset', 2, 1))
-        self.assertEqual((child['hreflang_links'], child['arabic_hreflang_links']), (2, 1))
+        self.assertEqual((child['hreflang_links'], child['invalid_hreflang_links']), (2, 0))
+        self.assertEqual(child['entries'][0]['alternates'][1],
+                         {"hreflang": "ar", "href": "https://nassli-led.com.sa/ar/product/led-up-light/"})
         self.assertEqual(summarize_sitemap(URLSET_ENGLISH_ONLY)['arabic_locs'], 0)  # '/bar/' is not Arabic
 
     def test_tree_issues(self):
@@ -248,9 +327,28 @@ class TestSitemaps(unittest.TestCase):
                          ['sitemap_child_unreachable', 'sitemap_duplicate_urls', 'sitemap_has_no_arabic_urls'])
         self.assertEqual(sitemap_site_issues({"a.xml": en_only}, ["en"]), [])
 
-    def test_arabic_via_xml_hreflang_counts(self):
-        # Hreflang moved from HTML to the sitemap is a legitimate setup, not a failure.
-        self.assertEqual(sitemap_site_issues({"p.xml": summarize_sitemap(URLSET_WITH_ALTERNATES)}, ["en", "ar"]), [])
+    def test_genuine_xml_only_reciprocal_coverage(self):
+        # Hreflang moved from HTML to the sitemap is legitimate when the mapping is reciprocal.
+        tree = {"p.xml": summarize_sitemap(URLSET_RECIPROCAL_NO_AR_PATH)}
+        self.assertEqual(sitemap_site_issues(tree, ["en", "ar"]), [])
+
+    def test_alternate_without_href_is_not_coverage(self):
+        tree = {"p.xml": summarize_sitemap(URLSET_ALTERNATE_WITHOUT_HREF)}
+        self.assertEqual(sitemap_site_issues(tree, ["en", "ar"]),
+                         ['sitemap_has_no_arabic_urls', 'sitemap_hreflang_invalid_target'])
+
+    def test_one_way_annotation_is_not_verified_coverage(self):
+        tree = {"p.xml": summarize_sitemap(URLSET_ONE_WAY_NO_AR_PATH)}
+        self.assertEqual(sitemap_site_issues(tree, ["en", "ar"]),
+                         ['sitemap_has_no_arabic_urls', 'sitemap_hreflang_missing_return_link'])
+        # Same one-way gap with an /ar/ URL listed: the Arabic URL is discoverable, but the gap is still flagged.
+        tree = {"p.xml": summarize_sitemap(URLSET_WITH_ALTERNATES)}
+        self.assertEqual(sitemap_site_issues(tree, ["en", "ar"]), ['sitemap_hreflang_missing_return_link'])
+
+    def test_alternate_outside_tree_is_pending_validation(self):
+        xml = URLSET_ONE_WAY_NO_AR_PATH.replace('<url><loc>https://nassli-led.com.sa/product/led-linear/?lang=ar</loc></url>', '')
+        self.assertEqual(sitemap_site_issues({"p.xml": summarize_sitemap(xml)}, ["en", "ar"]),
+                         ['sitemap_has_no_arabic_urls', 'sitemap_hreflang_target_not_in_sitemap_review'])
 
 
 if __name__ == '__main__':

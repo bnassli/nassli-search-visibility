@@ -3,7 +3,7 @@
 ## [0.3.0] — 2026-10-21 — Phase A for #21–#24 (after Codex review)
 - Auditor: Arabic share measured inside `<main>` (menus/footers excluded) to separate translated pages from WPML fallbacks; `canonical_to_original_on_untranslated_review` vs critical `canonical_conflicts_with_hreflang`; `canonical_missing` / `canonical_multiple` split.
 - Schema: `schema_offer_on_quote_only_page`, currency/availability reported per page, placeholder-SKU detection replaces the length>40 rule, optional `approved_sku_pattern`, missing/duplicate Product output.
-- Sitemaps: `xhtml:link` hreflang parsing, Arabic URL counts per child, `sitemap_child_unreachable`, `sitemap_duplicate_urls`, `sitemap_has_no_arabic_urls`. Tests 15 → 30. Quote UI is detected from button class attributes (not site-wide CSS).
+- Sitemaps: `xhtml:link` hreflang parsing, Arabic URL counts per child, `sitemap_child_unreachable`, `sitemap_duplicate_urls`, `sitemap_has_no_arabic_urls`. Tests 15 → 37. Hreflang in sitemaps keeps source→target mappings, rejects missing/relative targets and counts Arabic coverage only when reciprocal; author archives detected by URL path (configurable `author_bases`); the untranslated-fallback canonical exemption applies only when the target is the page's own original-language alternate. Quote UI is detected from button class attributes (not site-wide CSS).
 - Baseline report corrected per Codex (image claim retracted, plugin/author wording, USD/InStock facts).
 - New: `docs/OWNER-DECISIONS.md`, `tracking/translation-matrix.csv`, `tracking/sitemap-inventory.csv`.
 - No changes to the live website.

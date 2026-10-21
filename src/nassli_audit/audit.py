@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.error import HTTPError, URLError
-from urllib.parse import urljoin, urlparse
+from urllib.parse import parse_qs, urljoin, urlparse
 from urllib.request import Request, urlopen
 import argparse
 import json
@@ -20,9 +20,8 @@ import xml.etree.ElementTree as ET
 
 # Titles/og:titles that say nothing about the business (theme or WordPress defaults).
 GENERIC_TITLES = {"home", "front", "front page", "homepage", "welcome", "untitled"}
-# Sitemap sections that should normally not be indexable (WordPress core / Porto theme).
-SITEMAP_REVIEW_MARKERS = {"users": "sitemap_exposes_user_archives",
-                          "porto_builder": "sitemap_lists_theme_templates"}
+# WordPress author base ("/author/<slug>/"); overridable with config "author_bases" if the site changed it.
+DEFAULT_AUTHOR_BASES = ["author"]
 MAX_CHILD_SITEMAPS = 30
 # Pages declaring lang=ar but with less Arabic than this share of letters are treated as
 # untranslated WPML fallbacks, where canonical-to-original is expected rather than a defect.
@@ -286,10 +285,14 @@ def analyze_html(html: str, url: str, host: str | None = None, kind: str | None 
         elif canonical and not _same_url(target, url):
             # A page listed as its own language alternate must canonicalize to itself,
             # otherwise Google is told the translation is a duplicate (WPML misconfiguration).
-            if untranslated:
-                # WPML fallback: body is still the original language, so pointing at the original
-                # is expected until the page is translated (then it must self-canonicalize).
+            # WPML fallback: an untranslated page pointing at ITS OWN original-language version is
+            # expected until it is translated (then it must self-canonicalize). Any other target is not.
+            originals = [urljoin(url, a["href"]) for a in alternates
+                         if a.get("href") and not (a.get("hreflang") or "").lower().startswith("ar")]
+            if untranslated and any(_same_url(target, o) for o in originals):
                 issues.append("canonical_to_original_on_untranslated_review")
+            elif untranslated and not alternates:
+                issues.append("canonical_relationship_unverified_review")
             elif any(a.get("href") and _same_url(urljoin(url, a["href"]), url) for a in alternates):
                 issues.append("canonical_conflicts_with_hreflang")
             else:
@@ -330,14 +333,21 @@ def cross_page_checks(pages: list) -> None:
                 break
 
 
-def classify_sitemap_urls(locs: list) -> list:
+def classify_sitemap_urls(locs: list, author_bases: list | None = None) -> list:
+    """Flag URLs that should not be advertised for search, by URL structure rather than sitemap filename."""
     issues = set()
+    bases = "|".join(re.escape(b.strip("/").lower()) for b in (author_bases or DEFAULT_AUTHOR_BASES))
+    # /author/<slug>/ optionally behind a language prefix such as /ar/.
+    author_path = re.compile(rf"^(/[a-z]{{2}})?/({bases})/[^/]+/?$")
     for loc in locs:
-        lowered = loc.lower()
-        for marker, issue in SITEMAP_REVIEW_MARKERS.items():
-            if marker in lowered:
-                issues.add(issue)
-        if "?" in loc:
+        parsed = urlparse(loc)
+        path, query = parsed.path.lower(), parse_qs(parsed.query)
+        if "porto_builder" in query or "porto_builder" in path:
+            issues.add("sitemap_lists_theme_templates")
+        if (re.search(r"/wp-sitemap-users-\d+\.xml$", path) or author_path.match(path)
+                or "author" in query):
+            issues.add("sitemap_exposes_user_archives")
+        if parsed.query:
             issues.add("sitemap_contains_query_urls")
     return sorted(issues)
 
@@ -347,18 +357,32 @@ def summarize_sitemap(xml_text: str) -> dict:
     root = ET.fromstring(xml_text)
     kind = root.tag.split("}")[-1]
     locs = [_normalize(el.text) for el in root.iter() if el.tag.split("}")[-1] == "loc" and el.text]
-    alternates = [el.attrib for el in root.iter()
-                  if el.tag.split("}")[-1] == "link" and el.attrib.get("rel") == "alternate" and el.attrib.get("hreflang")]
+    entries, annotations, invalid = [], 0, 0
+    for url_el in (el for el in root if el.tag.split("}")[-1] == "url"):
+        loc = next((_normalize(c.text) for c in url_el if c.tag.split("}")[-1] == "loc" and c.text), "")
+        alternates = []
+        for link in (c for c in url_el if c.tag.split("}")[-1] == "link"):
+            if link.attrib.get("rel") != "alternate" or not link.attrib.get("hreflang"):
+                continue
+            annotations += 1
+            href = (link.attrib.get("href") or "").strip()
+            target = urlparse(href)
+            if target.scheme not in ("http", "https") or not target.netloc:
+                invalid += 1  # Google requires fully qualified targets; a missing href proves nothing.
+                continue
+            alternates.append({"hreflang": link.attrib["hreflang"].lower(), "href": href})
+        entries.append({"loc": loc, "alternates": alternates})
     return {"type": kind, "locs": locs, "url_count": len(locs),
             "arabic_locs": sum((urlparse(u).path + "/").startswith("/ar/") for u in locs),
-            "hreflang_links": len(alternates),
-            "arabic_hreflang_links": sum(a.get("hreflang", "").lower().startswith("ar") for a in alternates)}
+            "hreflang_links": annotations, "invalid_hreflang_links": invalid, "entries": entries}
 
 
 def sitemap_site_issues(children: dict, languages: list | None = None) -> list:
     """Checks across the whole sitemap tree. `children` maps child URL -> summarize_sitemap() or None if unreachable."""
     issues = set()
     seen: dict = {}
+    targets_by_loc: dict = {}  # loc -> set of hreflang targets it declares
+    pairs = []                 # (source loc, hreflang, target)
     for url, summary in children.items():
         if summary is None:
             issues.add("sitemap_child_unreachable")
@@ -367,11 +391,27 @@ def sitemap_site_issues(children: dict, languages: list | None = None) -> list:
             continue
         for loc in summary["locs"]:
             seen[loc] = seen.get(loc, 0) + 1
+        if summary.get("invalid_hreflang_links"):
+            issues.add("sitemap_hreflang_invalid_target")
+        for entry in summary.get("entries", []):
+            targets_by_loc.setdefault(entry["loc"], set()).update(a["href"] for a in entry["alternates"])
+            pairs.extend((entry["loc"], a["hreflang"], a["href"]) for a in entry["alternates"])
     if any(count > 1 for count in seen.values()):
         issues.add("sitemap_duplicate_urls")
+    verified_arabic = False
+    for source, lang, target in pairs:
+        if target == source:
+            continue
+        if target not in targets_by_loc:
+            # The alternate is not listed in this tree, so reciprocity cannot be checked here.
+            issues.add("sitemap_hreflang_target_not_in_sitemap_review")
+        elif source not in targets_by_loc[target]:
+            issues.add("sitemap_hreflang_missing_return_link")
+        elif lang.startswith("ar"):
+            verified_arabic = True
     if "ar" in (languages or []):
         reachable = [c for c in children.values() if c and c["type"] == "urlset"]
-        if reachable and not any(c["arabic_locs"] or c["arabic_hreflang_links"] for c in reachable):
+        if reachable and not verified_arabic and not any(c["arabic_locs"] for c in reachable):
             issues.add("sitemap_has_no_arabic_urls")
     return sorted(issues)
 
@@ -417,7 +457,8 @@ def validate_config(config: dict) -> None:
         raise ValueError("delay must be >= 0.5 seconds")
 
 
-def _audit_discovery(base: str, agent: str, timeout: int, delay: float, languages: list | None = None) -> dict:
+def _audit_discovery(base: str, agent: str, timeout: int, delay: float, languages: list | None = None,
+                     author_bases: list | None = None) -> dict:
     host = urlparse(base).netloc
     discovery: dict = {"host_variants": {}, "sitemaps": {}, "issues": []}
     # Every variant should end on the canonical https host.
@@ -449,12 +490,12 @@ def _audit_discovery(base: str, agent: str, timeout: int, delay: float, language
                 summary = summarize_sitemap(fetched.get("body", ""))
                 summaries[sm_url] = summary
                 locs = summary["locs"]
-                row.update({k: v for k, v in summary.items() if k != "locs"})
+                row.update({k: v for k, v in summary.items() if k not in ("locs", "entries")})
                 if summary["type"] == "sitemapindex":
                     queue.extend(u for u in locs if urlparse(u).netloc == host)
                 else:
                     row["sample"] = locs[:3]
-                flagged = classify_sitemap_urls(locs)
+                flagged = classify_sitemap_urls(locs, author_bases)
                 row["issues"] = flagged
                 discovery["issues"].extend(flagged)
             except ET.ParseError:
@@ -478,7 +519,8 @@ def run_audit(config: dict) -> dict:
     delay = float(config.get("delay_seconds", 1))
     report = {"generated_at": datetime.now(timezone.utc).isoformat(), "base_url": base,
               "scope": "configured_urls_and_declared_sitemaps_read_only",
-              "discovery": _audit_discovery(base, agent, timeout, delay, config.get("languages")), "pages": []}
+              "discovery": _audit_discovery(base, agent, timeout, delay, config.get("languages"),
+                                            config.get("author_bases")), "pages": []}
     for page in config["pages"]:
         url = urljoin(base+"/", page["path"].lstrip("/"))
         fetched = fetch_text(url, agent, timeout)
