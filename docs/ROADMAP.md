@@ -6,7 +6,7 @@
 
 | ID | Deliverable | Priority | Dependency | Objective acceptance |
 |---|---|---|---|---|
-| SEO-001 | GitHub private repo + PR controls + owners | P0 | None | Repo accessible to owner and agents; protection & CI verified |
+| SEO-001 | GitHub public repo + protected `main` + review order | P0 | None | Repo accessible to owner and agents; protection & CI verified |
 | SEO-002 | Source/stack inventory + staging backup | P0 | 001 | CMS/plugins/theme/server inventory, verified backup recovery test |
 | SEO-003 | Baseline: crawl, indexed URLs, GSC/Bing/GA4 | P0 | 001 | 4 sources documented; no extrapolated numbers |
 | SEO-004 | Legal brand/identity fact sheet | P0 | 001 | Founder/date, name/address/contact verified and approved |
@@ -32,7 +32,7 @@
 | SEO-024 | Product schema truthfulness (70 products) | P0 | 002 | No zero-price Offer, real order code as SKU, correct product image |
 
 ## Sprint 0 — first 14 days: Foundation & truth
-- Create Private GitHub, protect `main`, configure Issues and manual/weekly auditing.
+- Create GitHub repo (public, owner decision 2026-10-21), protect `main`, configure Issues and manual/weekly auditing.
 - Import current website source *after* checking license, private data and deployment.
 - Stack confirmed publicly on 2026-10-21 (WordPress + WooCommerce + WPML + Porto + Elementor Pro, no SEO plugin — see `reports/baseline-2026-10-21.md`). Still to inventory from admin: exact plugin settings, hosting panel, backups, redirects, htaccess/CDN.
 - **Fix live search-damaging defects first on staging:** SEO-021, SEO-022, SEO-023, SEO-024.

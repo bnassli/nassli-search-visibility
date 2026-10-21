@@ -8,7 +8,7 @@
 
 ## الواقع المثبت
 
-- المشروع المحلي في `D:\nassli-seo`. مرفوع على GitHub خاص `bnassli/nassli-search-visibility`، مع 24 Issue بعلامات الأولوية والخطوات.
+- المشروع المحلي في `D:\nassli-seo`. مرفوع على GitHub **عام** `bnassli/nassli-search-visibility` (قرار المالك لتفعيل حماية `main`)، مع 24 Issue بعلامات الأولوية والخطوات.
 - **تقنية الموقع مؤكدة من الفحص العام:** WordPress 7.0.7 + WooCommerce 11.2 + WPML 4.6.11 + قالب Porto (child theme) + Elementor Pro + YITH Request a Quote Premium. **لا توجد إضافة SEO.** التفاصيل: `reports/baseline-2026-10-21.md`.
 - **الاسم العربي المعتمد من المالك: «نسلي»** (2026-10-21). الموقع حاليًا يكتب «ناسلي» في الصفحة الرئيسية العربية — يجب تصحيحه.
 - كود الموقع، النسخ الاحتياطية، صلاحيات ووردبريس، Search Console وGA4 **غير متاحة داخل المستودع بعد**.
@@ -22,7 +22,7 @@
 
 ## الأولوية التالية — P0
 
-1. ✅ المستودع على GitHub خاص: https://github.com/bnassli/nassli-search-visibility — بقي إعطاء Codex صلاحية الوصول (SEO-001).
+1. ✅ المستودع على GitHub: https://github.com/bnassli/nassli-search-visibility — Codex متصل، `main` محمي (PR + اختبارات ناجحة إلزامية) (SEO-001).
 2. صلاحية دخول ووردبريس (أو نسخة staging) + نسخة احتياطية مُختبرة قبل أي تعديل (SEO-002).
 3. قرار إضافة SEO: Rank Math أو Yoast (كلاهما متوافق مع WPML) — **قرار المالك** (SEO-022).
 4. إصلاح canonical العربي وتنظيف sitemap وschema المنتجات (SEO-021/023/024) على staging أولًا.

@@ -40,7 +40,7 @@ If Codex requests changes at step 4, Claude fixes on the same branch and the PR 
 
 ## Collision prevention
 - Pull latest `main` at session start. If another branch edits same template, coordinate issue owner.
-- No force-push to `main`. Private repos on a free GitHub plan cannot enforce branch protection, so this rule is followed by convention.
+- `main` is protected by GitHub (owner decision 2026-10-21, repo made public to allow it on the free plan): PR required, `unit-tests` must pass on the latest commit, no direct or force pushes, admins included. The owner merges only after `CODEX CONFIRMED` on the latest PR revision.
 - If a task is incomplete, annotate `STATUS.md` and PR draft with exact steps remaining.
 - Use no shared mutable server shell or WordPress admin session without access coordination.
 - Keep changes to SEO operations separate from unrelated CRM or projects.

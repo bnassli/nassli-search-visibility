@@ -14,7 +14,7 @@ gh label create 'P0' --repo "$repo" --color 'B60205' --force
 gh label create 'P1' --repo "$repo" --color 'FBCA04' --force
 gh label create 'P2' --repo "$repo" --color '0E8A16' --force
 for line in \
-  'SEO-001|P0|Set up private GitHub collaboration rules' \
+  'SEO-001|P0|Set up GitHub collaboration rules' \
   'SEO-002|P0|Read-only website source and infrastructure inventory' \
   'SEO-003|P0|Capture search/index/performance/RFQ baseline' \
   'SEO-004|P0|Approve official Nassli identity and factual claims' \

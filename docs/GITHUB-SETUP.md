@@ -5,7 +5,7 @@ GitHub integration in the current session cannot create new repositories; it did
 
 ## الخطوات
 1. افتح https://github.com/new بالحساب الذي تريد أن يمتلك المشروع (حاليًا المستهدف `bnassli`).
-2. Repository name: `nassli-search-visibility`. اختر **Private**، واترك خيارات Initialize README و`.gitignore` وLicense غير مفعلة.
+2. Repository name: `nassli-search-visibility`. المستودع **عام Public** بقرار المالك (2026-10-21) لتفعيل حماية `main` مجانًا. اترك خيارات Initialize README و`.gitignore` وLicense غير مفعلة.
 3. فك الحزمة محليًا داخل مجلد. افتح PowerShell في هذا المجلد، وشغّل:
 
 ```powershell
@@ -22,14 +22,14 @@ bash scripts/push-to-github.sh
 إن ظهر طلب دخول GitHub عبر المتصفح، أكمله يدويًا؛ **لا ترسل Token أو Password إلى الوكلاء.** إذا كان جهازك يستخدم Git Bash أو PowerShell، تأكد أن `git --version` يعمل قبل الخطوة.
 
 4. راجع الرابط `https://github.com/bnassli/nassli-search-visibility` وأن جميع الملفات موجودة.
-5. Settings → Branches / Rulesets: require pull requests, 1 human approval, passing `Quality gate`; prevent force push/direct push `main`.
-6. Settings → Collaborators / app access: ensure Claude's GitHub integration and Codex (ChatGPT) GitHub connection can access **this exact private repository** with appropriate read/write permissions. Some installed GitHub apps need repo-specific approval.
+5. Branch protection on `main` (enabled 2026-10-21): pull request required, status check `unit-tests` (Quality gate) must pass on the latest commit, branch must be up to date, admins included, no force push, no deletion, all PR review conversations resolved. Required approvals = 0 because Claude opens PRs from the owner's account and GitHub does not let an author approve their own PR; the owner's merge is the approval. `CODEX CONFIRMED` on the latest revision is required by `AGENTS.md` (GitHub cannot enforce a comment).
+6. Settings → Collaborators / app access: ensure Claude's GitHub integration and Codex (ChatGPT) GitHub connection can access **this exact repository** with appropriate read/write permissions. Some installed GitHub apps need repo-specific approval.
 7. افتح Issues وأنشئ المهام من `tracking/ISSUE-BACKLOG.md` يدويًا، أو استخدم `scripts/create-issues.sh` بعد `gh auth login` لتوليدها دون تكرار titles إن لم تكن موجودة.
 8. Confirm Actions enabled; manually run `Read-only public website audit` after owner approval for the public read requests.
 
 ## كيف يشتغل الوكيلان على نفس المشروع؟
-- Codex: مُراجع فقط — يكتب تعليقات على الـ Issues والـ PRs ولا يعدّل الملفات. الطلبات الجاهزة في `docs/AGENT-PROMPTS.md`. يقرأ `AGENTS.md` تلقائيًا، ثم `STATUS.md`, Issue محدد، اطلب تعديل فرع وPR. تحقّق أولًا أن اتصال GitHub يسمح برؤية هذا المستودع.
-- Claude: في Claude Code افتح/clone نفس المشروع، اقرأ `CLAUDE.md`، افتح issue على فرع وPR.
+- Codex: مُراجع فقط — يكتب تعليقات على الـ Issues والـ PRs ولا يعدّل الملفات. الطلبات الجاهزة في `docs/AGENT-PROMPTS.md`. يقرأ `AGENTS.md` تلقائيًا، ثم `STATUS.md` والـ Issue المحدد، ويكتب تعليق `CODEX REVIEW` أو `CODEX CONFIRMED` فقط. **لا تطلب منه تعديل فرع أو فتح PR** — هذا عمل Claude وحده.
+- Claude: في Claude Code افتح/clone نفس المشروع، اقرأ `CLAUDE.md`؛ يراجع تعليق Codex، يكتب `AGREED PLAN`، ثم وحده ينشئ الفرع ويعدّل ويفتح الـ PR.
 - كل واحد يراجع عمل الآخر مع موافقة بشرية نهائية. لن يتزامن الذكاء الاصطناعي تلقائيًا بين دردشات مستقلة: **GitHub هو الذاكرة المشتركة**.
 
 ## مهم

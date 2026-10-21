@@ -32,7 +32,7 @@ Improve qualified B2B RFQs for Nassli LED Factory (مصنع نسلي للإنا�
 1. Do not modify production infrastructure or website unless a human explicitly authorizes scope, approves staging evidence, and confirms rollback.
 2. Do not invent product specifications, certifications, project client approvals, prices, founder dates, warranties, BIM/IES availability, ratings, or business addresses. Mark unknowns `PENDING_VERIFICATION`.
 3. Don't create mass AI-generated doorway pages, keyword stuffing, fake backlinks/reviews or fabricate citations.
-4. Never commit API keys, credentials, emails from RFQ contacts, analytics raw user identifiers, server backups, or proprietary customer data.
+4. **This repository is PUBLIC.** Never commit API keys, credentials, emails from RFQ contacts, analytics raw user identifiers, server backups, website source/theme code, customer or project names without publication approval, internal prices, CRM data, or Search Console query exports. Those belong in a separate private repo or nowhere.
 5. Never change, without owner approval: DNS, Search Console verification, robots.txt, redirects, WPML/SEO plugin settings, product spec sheets, customer/project names, certifications, prices, published content. Never silently install plugins.
 6. Validate code and run tests, update docs, record evidence. Avoid dependency/hosting migration without explicit approval.
 7. Preserve existing site look, functionality, current public URLs, product codes, and admin workflow by default. Prefer `porto-child` or a small versioned plugin over parent-theme edits.
