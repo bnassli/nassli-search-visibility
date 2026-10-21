@@ -3,6 +3,9 @@
 ## What this repo does NOT contain
 No original theme/site export, assets, WordPress DB, CMS plugin list or server credentials. It is not safe to claim a site change is complete until actual source is inspected and deployed on staging.
 
+## Confirmed from public site (2026-10-21)
+WordPress 7.0.7, WooCommerce 11.2, WPML 4.6.11 (`/ar/`), Porto + `porto-child`, Elementor Pro, Slider Revolution, YITH Request a Quote Premium, Contact Form 7, Fluent Forms, Chaty. **No SEO plugin.** Server header `hcdn` (likely Hostinger — confirm). Changes should go through `porto-child` or a small versioned plugin, never the parent theme.
+
 ## Required read-only intake
 1. Repository URL or sanitized site export of current deployed source (not database dumps with user/customer data).
 2. CMS/framework version and theme/child theme info; staging URL; plugin list and versions if WordPress.

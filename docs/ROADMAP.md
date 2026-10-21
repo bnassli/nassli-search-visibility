@@ -1,4 +1,4 @@
-# 90-day roadmap — 2026-10-20 baseline
+# 90-day roadmap — 2026-10-20 baseline (updated 2026-10-21 after live audit)
 
 **North star:** qualified B2B requests for quotation (RFQ), technical consultations and project pipeline. Targets are execution goals, not predicted Google ranking or traffic.
 
@@ -10,7 +10,7 @@
 | SEO-002 | Source/stack inventory + staging backup | P0 | 001 | CMS/plugins/theme/server inventory, verified backup recovery test |
 | SEO-003 | Baseline: crawl, indexed URLs, GSC/Bing/GA4 | P0 | 001 | 4 sources documented; no extrapolated numbers |
 | SEO-004 | Legal brand/identity fact sheet | P0 | 001 | Founder/date, name/address/contact verified and approved |
-| SEO-005 | Homepage cleanup EN/AR | P0 | 002,004 | Clear H1/title/meta, editor artifacts removed, no design regressions |
+| SEO-005 | Homepage cleanup EN/AR | P0 | 002,004,022 | Clear H1/title/meta, editor artifacts removed, no design regressions |
 | SEO-006 | Indexation/canonical/sitemaps/robots audit | P0 | 002,003 | Valid discovery and intentional directives; no accidental noindex |
 | SEO-007 | Multi-language hreflang + canonical map | P1 | 002,003 | Reciprocal annotations with correct language/region and translated page mapping |
 | SEO-008 | Organization/LocalBusiness schema | P1 | 004,005 | Correct validated JSON-LD reflecting visible facts |
@@ -26,11 +26,16 @@
 | SEO-018 | Structured AI citation tracking | P2 | 003,013,014 | Repeatable fixed-prompt/manual citation log, no unverifiable claims |
 | SEO-019 | Editorial and review cadence | P2 | 014 | Monthly original updates, clear reviewers, publish log |
 | SEO-020 | 30/60/90-day management report | P1 | 010 | RFQ funnel and verified SEO metrics; documented changes |
+| SEO-021 | Arabic canonical fix (WPML) | P0 | 002 | Every `/ar/` page canonicalizes to itself; audit shows no `canonical_conflicts_with_hreflang` |
+| SEO-022 | WPML-compatible SEO plugin (owner picks Rank Math or Yoast) | P0 | 002 | Titles/meta per page EN+AR, brand site name, multilingual sitemap; no duplicate schema |
+| SEO-023 | Sitemap cleanup | P0 | 022 | No `porto_builder` or user archive URLs; Arabic URLs listed |
+| SEO-024 | Product schema truthfulness (70 products) | P0 | 002 | No zero-price Offer, real order code as SKU, correct product image |
 
 ## Sprint 0 — first 14 days: Foundation & truth
 - Create Private GitHub, protect `main`, configure Issues and manual/weekly auditing.
 - Import current website source *after* checking license, private data and deployment.
-- Inventory actual CMS (possibly WordPress/WooCommerce, **not confirmed**), theme/plugin versions, environment, redirects, htaccess/CDN.
+- Stack confirmed publicly on 2026-10-21 (WordPress + WooCommerce + WPML + Porto + Elementor Pro, no SEO plugin — see `reports/baseline-2026-10-21.md`). Still to inventory from admin: exact plugin settings, hosting panel, backups, redirects, htaccess/CDN.
+- **Fix live search-damaging defects first on staging:** SEO-021, SEO-022, SEO-023, SEO-024.
 - Baseline URLs, robots and XML sitemaps, page titles, index reports, Core Web Vitals, conversions.
 - Approve unified brand facts, fix accidental author/date disclosures in page if verified.
 - **Exit**: backups tested, staging reachable, claims approved, prioritized URL list.

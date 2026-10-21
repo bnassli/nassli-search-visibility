@@ -1,5 +1,9 @@
 ## Issue and owner
 Closes #
+Agent: codex / claude / human
+
+## Live site changed?
+NO (default). If yes: who approved, when, staging evidence link.
 
 ## Baseline / reason
 
@@ -9,6 +13,7 @@ Closes #
 
 ## Evidence & validation
 - [ ] Unit tests run and pass (paste output)
+- [ ] Audit re-run if SEO behavior changed (no new **bold** issues)
 - [ ] No new crawl/indexing risk; robots/canonicals/redirects reviewed
 - [ ] Arabic/English + desktop/mobile reviewed where applicable
 - [ ] Product claims, brand details, project permissions verified

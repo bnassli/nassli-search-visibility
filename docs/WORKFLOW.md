@@ -1,4 +1,4 @@
-# Work protocol — Basel × ChatGPT × Claude
+# Work protocol — Basel × Codex × Claude
 
 ## Source of truth
 The GitHub repo is the only shared project memory. A chat response is not evidence that a file was changed: accept work only when a branch, commit, PR or Issue URL exists. `STATUS.md` gives current state, Git history tracks code, Issues track deliverables.
@@ -8,13 +8,13 @@ The GitHub repo is the only shared project memory. A chat response is not eviden
 | Party | Primary function | Permissions |
 |---|---|---|
 | Owner | Priorities, technical claim approval, spending, publish/merge decisions | Owns GitHub, production and approvals |
-| ChatGPT | Audit, roadmap, content briefs, acceptance criteria, code changes via branch, PR review | No production deploy by default |
+| Codex | Audit, roadmap, content briefs, acceptance criteria, code changes via branch, PR review | No production deploy by default |
 | Claude | Site code implementation, testing, integrations, performance and technical cleanup via branch | No production deploy by default |
 | Technical sales/engineering | Confirm specs, catalog, certifications and case-study permissions | Explicit written approval for claims |
 
 ## Standard change lifecycle
 1. **Issue**: ID, purpose, affected URLs, risk, expected impact, acceptance checks, owner.
-2. **Branch**: `chatgpt/seo-012-homepage` or `claude/seo-012-homepage`. One person/agent per branch.
+2. **Branch**: `codex/seo-012-homepage` or `claude/seo-012-homepage`. One person/agent per branch. The Issue carries `agent:codex` or `agent:claude` so both agents know who owns it.
 3. **Baseline**: capture page and metadata, current index status and conversions if available. Record unknowns.
 4. **Implementation**: narrow diff, clear commit messages. Keep URL/visual design stable unless authorized.
 5. **Verification**: tests + desktop/mobile + Arabic/English + validated schema + visual screenshots if applicable.

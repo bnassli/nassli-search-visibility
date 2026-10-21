@@ -5,6 +5,7 @@ Facts required to publish authoritative brand data or JSON-LD must be verified f
 | Field | Current signal | Status | Proof needed |
 |---|---|---|---|
 | Public brand | Nassli / Nassli LED | To confirm legal vs trading names | Official company profile |
+| Arabic brand name | **نسلي** — approved by owner 2026-10-21 | Approved. Site currently shows «ناسلي» on `/ar/` → correct everywhere (site, GBP, profiles) | — |
 | Website | https://nassli-led.com.sa/ | Observed public site | DNS/admin confirmation |
 | Factory location | Second Industrial City, Riyadh | Shown on public site | Official address, map location |
 | Public email | info@nassli-led.com.sa | Shown on public site | Admin test/approval |

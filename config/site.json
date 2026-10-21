@@ -2,14 +2,18 @@
   "site_name": "Nassli LED",
   "base_url": "https://nassli-led.com.sa",
   "requests_timeout_seconds": 15,
-  "user_agent": "NassliSEOAudit/0.1 (read-only; site owner audit)",
+  "user_agent": "NassliSEOAudit/0.2 (read-only; site owner audit)",
   "max_pages": 12,
   "delay_seconds": 1.0,
   "pages": [
     {"path": "/", "kind": "home", "primary_language": "en"},
+    {"path": "/ar/", "kind": "home", "primary_language": "ar"},
     {"path": "/products/", "kind": "catalog", "primary_language": "en"},
+    {"path": "/ar/products/", "kind": "catalog", "primary_language": "ar"},
     {"path": "/our-lighting/", "kind": "category", "primary_language": "en"},
-    {"path": "/product/led-up-light/", "kind": "product", "primary_language": "en"}
+    {"path": "/ar/our-lighting/", "kind": "category", "primary_language": "ar"},
+    {"path": "/product/led-up-light/", "kind": "product", "primary_language": "en"},
+    {"path": "/ar/product/led-up-light/", "kind": "product", "primary_language": "ar"}
   ],
   "known_brand_terms": ["Nassli", "Nassli LED", "نسلي"],
   "warn_unexpected_public_email": true

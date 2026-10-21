@@ -36,7 +36,8 @@
 - Record screenshots and QA evidence in the PR; never change design unless approved.
 
 ## 6. CMS strategy
-- Do not assume the stack from website appearance. If confirmed WordPress + WooCommerce, inspect SEO plugin, theme, child theme, Woo templates, custom fields, multilingual module, and caching/CDN before choosing integration.
+- Stack confirmed 2026-10-21: WordPress + WooCommerce + WPML + Porto child theme + Elementor Pro, **no SEO plugin**. Inspect WPML SEO settings, Woo templates, custom fields and caching/CDN in admin before choosing integration.
+- Any SEO plugin chosen must support WPML (per-language titles, hreflang, sitemaps) and must replace — not duplicate — WooCommerce's Product JSON-LD.
 - Prefer child theme / small versioned plugin over direct changes to parent theme or database content by SQL.
 - Detect existing schema output and avoid duplicate Organization/Product JSON-LD injection.
 - Deploy on staging, backup first, include rollback steps and record edited WordPress content separately.

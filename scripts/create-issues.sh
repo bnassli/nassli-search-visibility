@@ -4,6 +4,13 @@ set -euo pipefail
 # This seeds issues without assigning owners; review and modify them in GitHub.
 repo='bnassli/nassli-search-visibility'
 command -v gh >/dev/null || { echo 'Install GitHub CLI (gh) first'; exit 1; }
+# Labels show who owns an issue so Claude and Codex never edit the same files at once.
+gh label create 'agent:claude' --repo "$repo" --color 'D97757' --description 'Assigned to Claude' --force
+gh label create 'agent:codex' --repo "$repo" --color '10A37F' --description 'Assigned to Codex' --force
+gh label create 'needs-owner-approval' --repo "$repo" --color 'B60205' --description 'Blocked until the owner approves' --force
+gh label create 'P0' --repo "$repo" --color 'B60205' --force
+gh label create 'P1' --repo "$repo" --color 'FBCA04' --force
+gh label create 'P2' --repo "$repo" --color '0E8A16' --force
 for line in \
   'SEO-001|P0|Set up private GitHub collaboration rules' \
   'SEO-002|P0|Read-only website source and infrastructure inventory' \
@@ -24,11 +31,16 @@ for line in \
   'SEO-017|P1|Performance and responsive regression' \
   'SEO-018|P2|AI citation query panel' \
   'SEO-019|P2|Editorial and distribution process' \
-  'SEO-020|P1|90-day dashboard and review'; do
+  'SEO-020|P1|90-day dashboard and review' \
+  'SEO-021|P0|Arabic canonical fix in WPML' \
+  'SEO-022|P0|WPML-compatible SEO plugin' \
+  'SEO-023|P0|Sitemap cleanup' \
+  'SEO-024|P0|Product schema truthfulness across 70 products'; do
   IFS='|' read -r id priority title <<< "$line"
   if gh issue list --repo "$repo" --state all --limit 200 --json title --jq '.[].title' | grep -Fq "[$id]"; then
     echo "Skipping existing $id"
   else
-    gh issue create --repo "$repo" --title "[$id][$priority] $title" --body "See tracking/ISSUE-BACKLOG.md section $id for full scope and acceptance criteria.\n\nOwner: TBD. Production changes require explicit human approval."
+    body=$(printf 'See tracking/ISSUE-BACKLOG.md section %s for full scope and acceptance criteria.\n\nOwner: TBD (add agent:claude or agent:codex). Production changes require explicit human approval.' "$id")
+    gh issue create --repo "$repo" --title "[$id][$priority] $title" --label "$priority" --body "$body"
   fi
 done

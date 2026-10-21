@@ -1,5 +1,9 @@
 url,page_type,lang,current_state,priority,target_intent,owner,technical_review,notes
-https://nassli-led.com.sa/,homepage,en,publicly_observed,P0,manufacturer_brand,marketing,pending,On-page H1 currently generic; verify all metadata in audit
-https://nassli-led.com.sa/products/,catalog,en,publicly_observed,P0,product_discovery,marketing,pending,Plan internal linking
-https://nassli-led.com.sa/our-lighting/,category,en,publicly_observed,P1,architectural_lighting,marketing,pending,Map actual translated URL before hreflang
-https://nassli-led.com.sa/product/led-up-light/,product,en,publicly_observed,P0,outdoor_led_uplight,sales_engineer,pending,Inspect duplicated tables and RFQ CTA
+https://nassli-led.com.sa/,homepage,en,audited_2026-10-21,P0,manufacturer_brand,marketing,pending,"Title = bare domain; no meta description; og:title 'front'; H1 'Welcome to Nassli'"
+https://nassli-led.com.sa/ar/,homepage,ar,audited_2026-10-21,P0,manufacturer_brand,marketing,pending,"Canonical points to EN (SEO-021); H1 spells ناسلي not نسلي"
+https://nassli-led.com.sa/products/,catalog,en,audited_2026-10-21,P0,product_discovery,marketing,pending,"No canonical tag; plan internal linking"
+https://nassli-led.com.sa/ar/products/,catalog,ar,audited_2026-10-21,P0,product_discovery,marketing,pending,"No canonical; title and H1 still English 'Products'"
+https://nassli-led.com.sa/our-lighting/,category,en,audited_2026-10-21,P1,architectural_lighting,marketing,pending,"No H1"
+https://nassli-led.com.sa/ar/our-lighting/,category,ar,audited_2026-10-21,P1,architectural_lighting,marketing,pending,"Canonical points to EN (SEO-021); no H1; English title"
+https://nassli-led.com.sa/product/led-up-light/,product,en,audited_2026-10-21,P0,outdoor_led_uplight,sales_engineer,pending,"Schema price 0.00 + junk SKU (SEO-024); title in h2 not h1; spec table repeated 3x"
+https://nassli-led.com.sa/ar/product/led-up-light/,product,ar,audited_2026-10-21,P0,outdoor_led_uplight,sales_engineer,pending,"Canonical points to EN (SEO-021); same schema defects; English title"

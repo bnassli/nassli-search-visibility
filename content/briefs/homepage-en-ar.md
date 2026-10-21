@@ -1,6 +1,6 @@
 # Homepage optimization draft — candidate, NOT yet deployed
 
-**Current observed H1** `Welcome to Nassli` on public website (re-verify DOM and title tag).
+**Observed 2026-10-21:** H1 `Welcome to Nassli` / `مرحبًا بكم في ناسلي`; `<title>` is the bare domain; no meta description; `og:title` = `front`. Arabic spelling must become **نسلي** (owner decision).
 
 ## Commercial intent
 Make the factory's Saudi manufacturing specialty immediately clear and route B2B buyers to products and RFQ.
