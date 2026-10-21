@@ -24,7 +24,8 @@
 | المكان | الاستخدام |
 |---|---|
 | `STATUS.md` | أين وصلنا؟ ما الموانع؟ ما القرار التالي؟ |
-| `docs/WORKFLOW.md` | طريقة تعاون Codex/Claude والبشر |
+| `docs/WORKFLOW.md` | ترتيب المراجعة: Codex ← Claude ← تنفيذ Claude ← تأكيد Codex |
+| `docs/AGENT-PROMPTS.md` | طلبات جاهزة للصق في Codex وClaude |
 | `docs/ROADMAP.md` | خارطة 90 يومًا وبوابات التسليم |
 | `docs/TECHNICAL-SEO.md` | الفهرسة والبيانات المنظمة واللغات والتحويل |
 | `docs/CONTENT-STRATEGY.md` | صفحات الحلول والمنتجات والمشاريع |
@@ -54,7 +55,7 @@ python -m src.nassli_audit --config config/site.json --output reports/current
 
 ## سياسة التنفيذ
 
-- ممنوع الكتابة المباشرة على `main` من أي وكيل. العمل على فرع `codex/seo-XXX-...` أو `claude/seo-XXX-...` لكل مهمة، وكل Issue عليها علامة `agent:codex` أو `agent:claude`.
+- ممنوع الكتابة المباشرة على `main` من أي وكيل. Codex يراجع بالتعليقات فقط، وClaude وحده يعدّل على فرع `claude/seo-XXX-...` لكل مهمة. علامة `step-1` … `step-4` تبيّن دور من.
 - لا يُدمج PR دون: وصف قبل/بعد، اختبارات، تدقيق نص عربي/إنجليزي، ومراجعة بشرية عند المحتوى الفني أو الاعتمادات.
 - لا نغيّر الروابط الحيّة أو نفعّل redirect/noindex/robots أو ننشر بيانات منظمة أو بيانات شركة غير مؤكدة قبل موافقة بشرية.
 - لا نرفع `.env` أو مفاتيح API أو بيانات CRM أو ملفات عملاء غير مصرح بنشرها.

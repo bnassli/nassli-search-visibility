@@ -12,12 +12,21 @@ Improve qualified B2B RFQs for Nassli LED Factory (مصنع نسلي للإنا�
 - Arabic brand spelling is **نسلي** (owner decision). Never write «ناسلي».
 - This repo is NOT the website source. Never claim a live change happened unless the owner confirms it.
 
+## Roles and review order (owner decision 2026-10-21 — details in `docs/WORKFLOW.md`)
+**Codex reviews first → Claude reviews second → only Claude edits files → Codex confirms the PR → owner merges.**
+
+- **Codex** never edits files, pushes branches or opens PRs. It works only through Issue/PR comments:
+  - Issues labeled `step-1:codex-review`: post one comment starting `CODEX REVIEW` (facts checked with sources, risks, missing acceptance criteria, proposed approach), then move the label to `step-2:claude-review`.
+  - PRs on Issues labeled `step-4:codex-confirm`: review the diff against the `AGREED PLAN`; comment `CODEX CONFIRMED` or `CODEX CHANGES REQUESTED` with reasons.
+- **Claude** is the only writer:
+  - `step-2:claude-review`: verify Codex's points, post one comment starting `AGREED PLAN` (note any disagreement for the owner), move label to `step-3:claude-build`.
+  - `step-3:claude-build`: branch `claude/seo-XXX-short-name`, implement, run tests + audit, open PR, move label to `step-4:codex-confirm`.
+- Nobody merges their own work; the owner merges after `CODEX CONFIRMED`.
+
 ## Session startup
-1. `git pull --ff-only`; review open PRs, Issues labeled for you, and `STATUS.md`.
-2. Pick only an Issue labeled `agent:codex` (Codex) or `agent:claude` (Claude). Unlabeled → ask the owner. Never edit files another open PR is changing.
-3. Branch: `codex/seo-XXX-short-name` or `claude/seo-XXX-short-name`. One agent per branch.
-4. Run `python -m unittest discover -s tests -v` before and after changes.
-5. One focused PR: what changed, why, tests, expected search effect (not guaranteed), rollback. Update `STATUS.md` handoff. Never merge your own PR.
+1. `git pull --ff-only`; read `STATUS.md`, open PRs and Issues whose step label is yours.
+2. Run `python -m unittest discover -s tests -v` before and after changes (Claude) or when confirming (Codex, if able).
+3. One focused PR per Issue: what changed, why, tests, expected search effect (not guaranteed), rollback. Update `STATUS.md` handoff.
 
 ## Non-negotiables
 1. Do not modify production infrastructure or website unless a human explicitly authorizes scope, approves staging evidence, and confirms rollback.

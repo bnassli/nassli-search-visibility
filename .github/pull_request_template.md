@@ -1,6 +1,9 @@
 ## Issue and owner
 Closes #
-Agent: codex / claude / human
+Agreed plan comment: (link)
+
+## Codex confirmation (step 4)
+- [ ] `CODEX CONFIRMED` comment on this PR (link)
 
 ## Live site changed?
 NO (default). If yes: who approved, when, staging evidence link.

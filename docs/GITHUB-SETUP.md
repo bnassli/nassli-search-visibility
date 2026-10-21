@@ -28,7 +28,7 @@ bash scripts/push-to-github.sh
 8. Confirm Actions enabled; manually run `Read-only public website audit` after owner approval for the public read requests.
 
 ## كيف يشتغل الوكيلان على نفس المشروع؟
-- Codex: يقرأ `AGENTS.md` تلقائيًا، ثم `STATUS.md`, Issue محدد، اطلب تعديل فرع وPR. تحقّق أولًا أن اتصال GitHub يسمح برؤية هذا المستودع.
+- Codex: مُراجع فقط — يكتب تعليقات على الـ Issues والـ PRs ولا يعدّل الملفات. الطلبات الجاهزة في `docs/AGENT-PROMPTS.md`. يقرأ `AGENTS.md` تلقائيًا، ثم `STATUS.md`, Issue محدد، اطلب تعديل فرع وPR. تحقّق أولًا أن اتصال GitHub يسمح برؤية هذا المستودع.
 - Claude: في Claude Code افتح/clone نفس المشروع، اقرأ `CLAUDE.md`، افتح issue على فرع وPR.
 - كل واحد يراجع عمل الآخر مع موافقة بشرية نهائية. لن يتزامن الذكاء الاصطناعي تلقائيًا بين دردشات مستقلة: **GitHub هو الذاكرة المشتركة**.
 
