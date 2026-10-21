@@ -4,15 +4,17 @@ set -euo pipefail
 # This seeds issues without assigning owners; review and modify them in GitHub.
 repo='bnassli/nassli-search-visibility'
 command -v gh >/dev/null || { echo 'Install GitHub CLI (gh) first'; exit 1; }
-# Labels show who owns an issue so Claude and Codex never edit the same files at once.
-gh label create 'agent:claude' --repo "$repo" --color 'D97757' --description 'Assigned to Claude' --force
-gh label create 'agent:codex' --repo "$repo" --color '10A37F' --description 'Assigned to Codex' --force
+# Step labels: Codex reviews first, Claude reviews second, only Claude edits files, Codex confirms the PR.
+gh label create 'step-1:codex-review' --repo "$repo" --color '10A37F' --description 'Codex reviews first — comments only, no file edits' --force
+gh label create 'step-2:claude-review' --repo "$repo" --color 'D97757' --description 'Claude reviews Codex comment and posts the agreed plan' --force
+gh label create 'step-3:claude-build' --repo "$repo" --color '8A3FFC' --description 'Claude alone edits files on a branch and opens a PR' --force
+gh label create 'step-4:codex-confirm' --repo "$repo" --color '0E8A16' --description 'Codex confirms the PR — comments only; then owner merges' --force
 gh label create 'needs-owner-approval' --repo "$repo" --color 'B60205' --description 'Blocked until the owner approves' --force
 gh label create 'P0' --repo "$repo" --color 'B60205' --force
 gh label create 'P1' --repo "$repo" --color 'FBCA04' --force
 gh label create 'P2' --repo "$repo" --color '0E8A16' --force
 for line in \
-  'SEO-001|P0|Set up private GitHub collaboration rules' \
+  'SEO-001|P0|Set up GitHub collaboration rules' \
   'SEO-002|P0|Read-only website source and infrastructure inventory' \
   'SEO-003|P0|Capture search/index/performance/RFQ baseline' \
   'SEO-004|P0|Approve official Nassli identity and factual claims' \
@@ -40,7 +42,7 @@ for line in \
   if gh issue list --repo "$repo" --state all --limit 200 --json title --jq '.[].title' | grep -Fq "[$id]"; then
     echo "Skipping existing $id"
   else
-    body=$(printf 'See tracking/ISSUE-BACKLOG.md section %s for full scope and acceptance criteria.\n\nOwner: TBD (add agent:claude or agent:codex). Production changes require explicit human approval.' "$id")
-    gh issue create --repo "$repo" --title "[$id][$priority] $title" --label "$priority" --body "$body"
+    body=$(printf 'See tracking/ISSUE-BACKLOG.md section %s for full scope and acceptance criteria.\n\nReview order: Codex reviews first, Claude reviews second, only Claude edits files, Codex confirms the PR. Production changes require explicit human approval.' "$id")
+    gh issue create --repo "$repo" --title "[$id][$priority] $title" --label "$priority,step-1:codex-review" --body "$body"
   fi
 done

@@ -2,9 +2,9 @@
 
 Issue titles must include stable ID to avoid duplication. Each item is a deliverable with verification, not a vague reminder. Owners are unassigned until owner decides.
 
-## SEO-001 · Set up private GitHub collaboration rules (P0)
+## SEO-001 · Set up GitHub collaboration rules (P0)
 **Description:** Publish repo, ensure access for owner and both assistant connectors, require PRs and passing CI on `main`.
-**Acceptance:** owner confirms repo; 2 agent workflows can read; branch protection configured; test PR passes. No production deployment.
+**Acceptance:** owner confirms repo; 2 agent workflows can read; branch protection configured on `main` (repo public by owner decision 2026-10-21); test PR passes. No production deployment.
 
 ## SEO-002 · Read-only website source and infrastructure inventory (P0)
 **Description:** Identify CMS/framework/version, hosting, site source repo, template system, SEO/multilingual/forms/plugins, backup/staging/CDN.

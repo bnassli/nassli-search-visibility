@@ -15,9 +15,9 @@ WordPress 7.0.7, WooCommerce 11.2, WPML 4.6.11 (`/ar/`), Porto + `porto-child`, 
 
 ## Recommended structure after intake
 - Keep marketing operations/content/docs in this repo.
-- Prefer separate `nassli-website` repo for full private source if licensing/ownership allow, or a subdirectory `website/` if codebase ownership and scope are clear.
+- Website source goes in a **separate private** `nassli-website` repo (if licensing/ownership allow). **Never** add it to this repo — this repo is public.
 - Set up CI and staging from exact source before changing templates.
-- Import only code/assets permitted to store in private GitHub, never database passwords, customer submissions or admin exports.
+- In the private website repo, import only code/assets you are permitted to store, never database passwords, customer submissions or admin exports.
 - Cross-reference issues or link PRs from this repo to website repo.
 
 ## Deployment gate

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-# Run after creating empty private repo, having GitHub auth set up.
+# Historical: repo already exists at bnassli/nassli-search-visibility (public, protected main).
 [ -d .git ] || git init -b main
 git add .
 if ! git diff --cached --quiet; then git commit -m 'chore: initialize Nassli search visibility project'; fi

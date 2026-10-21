@@ -1,4 +1,4 @@
-# Run only AFTER creating empty PRIVATE repo bnassli/nassli-search-visibility.
+# Historical: repo already exists at bnassli/nassli-search-visibility (public, protected main).
 $ErrorActionPreference = 'Stop'
 if (-not (Test-Path '.git')) { git init -b main }
 git add .

@@ -19,4 +19,4 @@ Facts required to publish authoritative brand data or JSON-LD must be verified f
 
 Approval sequence: Marketing draft → factory engineer specs review → management/legal approval for entity, client references and photos → publish.
 
-Maintain canonical approved `config/company-profile.json` privately only after proper validation. The checked-in `config/company-profile.example.json` is NOT a publishing source.
+Maintain canonical approved `config/company-profile.json` outside this public repo until it is approved for publication. The checked-in `config/company-profile.example.json` is NOT a publishing source.
