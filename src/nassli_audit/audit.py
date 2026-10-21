@@ -24,10 +24,19 @@ GENERIC_TITLES = {"home", "front", "front page", "homepage", "welcome", "untitle
 SITEMAP_REVIEW_MARKERS = {"users": "sitemap_exposes_user_archives",
                           "porto_builder": "sitemap_lists_theme_templates"}
 MAX_CHILD_SITEMAPS = 30
+# Pages declaring lang=ar but with less Arabic than this share of letters are treated as
+# untranslated WPML fallbacks, where canonical-to-original is expected rather than a defect.
+MIN_TRANSLATED_ARABIC_SHARE = 0.30
+# CSS classes of a quote (RFQ) button on the page itself — YITH Request a Quote on the live site.
+# Matched on element class attributes only: the same names also appear in site-wide <style> blocks.
+# Overridable with config "quote_markers".
+DEFAULT_QUOTE_MARKERS = ["add-request-quote-button", "yith-ywraq-add-button", "yith-ywraq-add-to-quote"]
+NON_TEXT_TAGS = {"script", "style", "noscript", "svg", "template"}
 
 # Issues that can actively remove pages from search; sorted first in reports.
 CRITICAL_ISSUES = {"canonical_conflicts_with_hreflang", "page_declares_noindex_review",
-                   "header_noindex_review", "page_not_http_200", "schema_offer_price_zero"}
+                   "header_noindex_review", "page_not_http_200", "schema_offer_price_zero",
+                   "schema_offer_on_quote_only_page", "sitemap_child_unreachable"}
 
 
 @dataclass
@@ -44,15 +53,32 @@ class PageHTML(HTMLParser):
     _heading: str | None = None
     _ld: bool = False
     _ld_buffer: list = field(default_factory=list)
+    arabic_letters: int = 0
+    latin_letters: int = 0
+    # Same counts restricted to <main>, so translated menus and footers
+    # don't make an untranslated page body look Arabic.
+    main_arabic_letters: int = 0
+    main_latin_letters: int = 0
+    has_main: bool = False
+    _in_body: bool = False
+    _skip: int = 0
+    _main_depth: int = 0
+    quote_classes: list = field(default_factory=lambda: list(DEFAULT_QUOTE_MARKERS))
+    quote_ui: bool = False
 
     def __post_init__(self):
         HTMLParser.__init__(self, convert_charrefs=True)
 
     def handle_starttag(self, tag, attrs):
         values = {k.lower(): (v or "") for k, v in attrs}
+        if not self.quote_ui and values.get("class"):
+            classes = values["class"].split()
+            self.quote_ui = any(marker in classes for marker in self.quote_classes)
         if tag == "html":
             self.html_lang = values.get("lang", "")
             self.html_dir = values.get("dir", "")
+        elif tag == "body":
+            self._in_body = True
         elif tag == "title":
             self._title = True
         elif re.fullmatch(r"h[1-6]", tag):
@@ -64,11 +90,20 @@ class PageHTML(HTMLParser):
             self.links.append(values)
         elif tag == "img":
             self.images.append(values)
-        elif tag == "script" and values.get("type", "").lower() == "application/ld+json":
+        if tag in NON_TEXT_TAGS:
+            self._skip += 1
+        if tag == "main":
+            self.has_main = True
+            self._main_depth += 1
+        if tag == "script" and values.get("type", "").lower() == "application/ld+json":
             self._ld = True
             self._ld_buffer = []
 
     def handle_endtag(self, tag):
+        if tag in NON_TEXT_TAGS and self._skip:
+            self._skip -= 1
+        if tag == "main" and self._main_depth:
+            self._main_depth -= 1
         if tag == "title":
             self._title = False
         if self._heading == tag:
@@ -90,6 +125,14 @@ class PageHTML(HTMLParser):
             self.headings[-1]["text"] += data
         if self._ld:
             self._ld_buffer.append(data)
+        elif self._in_body and not self._skip:
+            arabic = len(re.findall(r"[\u0621-\u064A]", data))
+            latin = len(re.findall(r"[A-Za-z]", data))
+            self.arabic_letters += arabic
+            self.latin_letters += latin
+            if self._main_depth:
+                self.main_arabic_letters += arabic
+                self.main_latin_letters += latin
 
 
 def _normalize(s):
@@ -117,15 +160,51 @@ def _types(node) -> list:
     return t if isinstance(t, list) else [t]
 
 
-def schema_issues(blocks: list) -> list:
-    """Content checks for JSON-LD: values Google may treat as misleading or broken."""
-    issues = []
+def is_placeholder_sku(sku: str) -> bool:
+    """Copied/generated placeholders, e.g. 1234567812-1-1-1. Length alone is not a signal:
+    real order codes such as NSL-UPL-XDD-24W-XXK-SMD-DON-IP65 are long."""
+    return bool(re.search(r"(-1){3,}", sku) or re.match(r"^1234567", sku) or re.fullmatch(r"(\d)\1{3,}", sku))
+
+
+def schema_facts(blocks: list) -> dict:
+    """Commercial claims made in JSON-LD, reported so reviewers see them without reading raw markup."""
+    facts = {"product_nodes": 0, "offer_nodes": 0, "currencies": set(), "availability": set(), "skus": []}
     for node in _jsonld_nodes(blocks):
         types = _types(node)
         if "Product" in types:
-            sku = str(node.get("sku", ""))
-            if sku and (len(sku) > 40 or re.search(r"(-1){5,}", sku)):
-                issues.append("schema_sku_suspicious")
+            facts["product_nodes"] += 1
+            if node.get("sku"):
+                facts["skus"].append(str(node["sku"]))
+        if "Offer" in types or "AggregateOffer" in types:
+            facts["offer_nodes"] += 1
+        if node.get("priceCurrency"):
+            facts["currencies"].add(str(node["priceCurrency"]))
+        if node.get("availability"):
+            facts["availability"].add(str(node["availability"]).rsplit("/", 1)[-1])
+    facts["currencies"] = sorted(facts["currencies"])
+    facts["availability"] = sorted(facts["availability"])
+    return facts
+
+
+def schema_issues(blocks: list, quote_only: bool = False, kind: str | None = None,
+                  approved_sku_pattern: str | None = None) -> list:
+    """Content checks for JSON-LD: values Google may treat as misleading or broken."""
+    issues = []
+    facts = schema_facts(blocks)
+    for sku in facts["skus"]:
+        if is_placeholder_sku(sku):
+            issues.append("schema_sku_placeholder")
+        elif approved_sku_pattern and not re.fullmatch(approved_sku_pattern, sku):
+            issues.append("schema_sku_not_in_approved_format")
+    if kind == "product" and facts["product_nodes"] == 0:
+        issues.append("schema_product_missing")
+    if facts["product_nodes"] > 1:
+        issues.append("schema_duplicate_product_review")
+    if quote_only and facts["offer_nodes"]:
+        # Quote-only pages cannot truthfully publish price/stock; expected result is no Offer.
+        issues.append("schema_offer_on_quote_only_page")
+    for node in _jsonld_nodes(blocks):
+        types = _types(node)
         if "Offer" in types or "UnitPriceSpecification" in types:
             price = node.get("price")
             try:
@@ -138,8 +217,9 @@ def schema_issues(blocks: list) -> list:
     return sorted(set(issues))
 
 
-def analyze_html(html: str, url: str, host: str | None = None) -> dict:
-    p = PageHTML()
+def analyze_html(html: str, url: str, host: str | None = None, kind: str | None = None,
+                 quote_markers: list | None = None, approved_sku_pattern: str | None = None) -> dict:
+    p = PageHTML(quote_classes=quote_markers or list(DEFAULT_QUOTE_MARKERS))
     p.feed(html)
     p.close()
     metas = {m.get("name", "").lower(): m.get("content", "") for m in p.metas if m.get("name")}
@@ -154,6 +234,13 @@ def analyze_html(html: str, url: str, host: str | None = None) -> dict:
     og_title = _normalize(og.get("og:title", ""))
     x_robots = metas.get("robots", "")
     host = (host or urlparse(url).netloc).lower()
+    arabic, latin = ((p.main_arabic_letters, p.main_latin_letters) if p.has_main
+                     else (p.arabic_letters, p.latin_letters))
+    letters = arabic + latin
+    arabic_share = round(arabic / letters, 2) if letters else None
+    untranslated = (p.html_lang.lower().startswith("ar") and arabic_share is not None
+                    and arabic_share < MIN_TRANSLATED_ARABIC_SHARE)
+    quote_only = p.quote_ui
     issues = []
     if not title:
         issues.append("missing_title")
@@ -174,8 +261,12 @@ def analyze_html(html: str, url: str, host: str | None = None) -> dict:
         issues.append("multiple_h1_review")
     elif h1[0].lower().startswith(("welcome", "مرحب")):
         issues.append("generic_h1")
-    if len(canonicals) != 1:
-        issues.append("canonical_missing_or_multiple")
+    if not canonicals:
+        issues.append("canonical_missing")
+    elif len(canonicals) > 1:
+        issues.append("canonical_multiple")
+    if untranslated:
+        issues.append("arabic_page_mostly_untranslated")
     if not p.html_lang:
         issues.append("missing_html_lang")
     elif p.html_lang.lower().startswith("ar") and p.html_dir.lower() != "rtl":
@@ -186,7 +277,8 @@ def analyze_html(html: str, url: str, host: str | None = None) -> dict:
         issues.append("page_declares_noindex_review")
     if any(isinstance(x, dict) and x.get("parse_error") for x in p.jsonld):
         issues.append("invalid_jsonld_syntax")
-    issues.extend(schema_issues([x for x in p.jsonld if not (isinstance(x, dict) and x.get("parse_error"))]))
+    valid_blocks = [x for x in p.jsonld if not (isinstance(x, dict) and x.get("parse_error"))]
+    issues.extend(schema_issues(valid_blocks, quote_only, kind, approved_sku_pattern))
     for canonical in canonicals:
         target = urljoin(url, canonical)
         if canonical and urlparse(target).netloc != urlparse(url).netloc:
@@ -194,7 +286,11 @@ def analyze_html(html: str, url: str, host: str | None = None) -> dict:
         elif canonical and not _same_url(target, url):
             # A page listed as its own language alternate must canonicalize to itself,
             # otherwise Google is told the translation is a duplicate (WPML misconfiguration).
-            if any(a.get("href") and _same_url(urljoin(url, a["href"]), url) for a in alternates):
+            if untranslated:
+                # WPML fallback: body is still the original language, so pointing at the original
+                # is expected until the page is translated (then it must self-canonicalize).
+                issues.append("canonical_to_original_on_untranslated_review")
+            elif any(a.get("href") and _same_url(urljoin(url, a["href"]), url) for a in alternates):
                 issues.append("canonical_conflicts_with_hreflang")
             else:
                 issues.append("canonical_not_self_review")
@@ -206,7 +302,9 @@ def analyze_html(html: str, url: str, host: str | None = None) -> dict:
         "h1": h1, "headings_count": len(p.headings),
         "canonical": canonicals, "hreflang": alternates, "robots_meta": x_robots,
         "images": len(p.images), "images_missing_alt": img_without_alt,
-        "jsonld_blocks": len(p.jsonld), "jsonld_types": jsonld_types, "issues": issues,
+        "jsonld_blocks": len(p.jsonld), "jsonld_types": jsonld_types,
+        "arabic_share": arabic_share, "quote_only_ui": quote_only, "schema_facts": schema_facts(valid_blocks),
+        "issues": sorted(set(issues), key=issues.index),
     }
 
 
@@ -244,11 +342,38 @@ def classify_sitemap_urls(locs: list) -> list:
     return sorted(issues)
 
 
-def _locs(xml_text: str) -> tuple[str, list]:
+def summarize_sitemap(xml_text: str) -> dict:
+    """Parse one sitemap or sitemap index, including xhtml:link hreflang alternates."""
     root = ET.fromstring(xml_text)
     kind = root.tag.split("}")[-1]
     locs = [_normalize(el.text) for el in root.iter() if el.tag.split("}")[-1] == "loc" and el.text]
-    return kind, locs
+    alternates = [el.attrib for el in root.iter()
+                  if el.tag.split("}")[-1] == "link" and el.attrib.get("rel") == "alternate" and el.attrib.get("hreflang")]
+    return {"type": kind, "locs": locs, "url_count": len(locs),
+            "arabic_locs": sum((urlparse(u).path + "/").startswith("/ar/") for u in locs),
+            "hreflang_links": len(alternates),
+            "arabic_hreflang_links": sum(a.get("hreflang", "").lower().startswith("ar") for a in alternates)}
+
+
+def sitemap_site_issues(children: dict, languages: list | None = None) -> list:
+    """Checks across the whole sitemap tree. `children` maps child URL -> summarize_sitemap() or None if unreachable."""
+    issues = set()
+    seen: dict = {}
+    for url, summary in children.items():
+        if summary is None:
+            issues.add("sitemap_child_unreachable")
+            continue
+        if summary["type"] != "urlset":
+            continue
+        for loc in summary["locs"]:
+            seen[loc] = seen.get(loc, 0) + 1
+    if any(count > 1 for count in seen.values()):
+        issues.add("sitemap_duplicate_urls")
+    if "ar" in (languages or []):
+        reachable = [c for c in children.values() if c and c["type"] == "urlset"]
+        if reachable and not any(c["arabic_locs"] or c["arabic_hreflang_links"] for c in reachable):
+            issues.add("sitemap_has_no_arabic_urls")
+    return sorted(issues)
 
 
 def fetch_text(url: str, user_agent: str, timeout: int = 15) -> dict:
@@ -292,7 +417,7 @@ def validate_config(config: dict) -> None:
         raise ValueError("delay must be >= 0.5 seconds")
 
 
-def _audit_discovery(base: str, agent: str, timeout: int, delay: float) -> dict:
+def _audit_discovery(base: str, agent: str, timeout: int, delay: float, languages: list | None = None) -> dict:
     host = urlparse(base).netloc
     discovery: dict = {"host_variants": {}, "sitemaps": {}, "issues": []}
     # Every variant should end on the canonical https host.
@@ -313,6 +438,7 @@ def _audit_discovery(base: str, agent: str, timeout: int, delay: float) -> dict:
     time.sleep(delay)
     queue = [u for u in declared if urlparse(u).netloc == host][:3] or [base + "/wp-sitemap.xml"]
     seen = 0
+    summaries: dict = {}
     while queue and seen < MAX_CHILD_SITEMAPS:
         sm_url = queue.pop(0)
         seen += 1
@@ -320,9 +446,11 @@ def _audit_discovery(base: str, agent: str, timeout: int, delay: float) -> dict:
         row = {"status": fetched.get("status")}
         if fetched.get("status") == 200:
             try:
-                kind, locs = _locs(fetched.get("body", ""))
-                row.update({"type": kind, "url_count": len(locs)})
-                if kind == "sitemapindex":
+                summary = summarize_sitemap(fetched.get("body", ""))
+                summaries[sm_url] = summary
+                locs = summary["locs"]
+                row.update({k: v for k, v in summary.items() if k != "locs"})
+                if summary["type"] == "sitemapindex":
                     queue.extend(u for u in locs if urlparse(u).netloc == host)
                 else:
                     row["sample"] = locs[:3]
@@ -334,8 +462,10 @@ def _audit_discovery(base: str, agent: str, timeout: int, delay: float) -> dict:
                 discovery["issues"].append("sitemap_xml_parse_error")
         else:
             row["error"] = fetched.get("error")
+            summaries[sm_url] = None
         discovery["sitemaps"][sm_url] = row
         time.sleep(delay)
+    discovery["issues"].extend(sitemap_site_issues(summaries, languages))
     discovery["issues"] = sorted(set(discovery["issues"]))
     return discovery
 
@@ -348,7 +478,7 @@ def run_audit(config: dict) -> dict:
     delay = float(config.get("delay_seconds", 1))
     report = {"generated_at": datetime.now(timezone.utc).isoformat(), "base_url": base,
               "scope": "configured_urls_and_declared_sitemaps_read_only",
-              "discovery": _audit_discovery(base, agent, timeout, delay), "pages": []}
+              "discovery": _audit_discovery(base, agent, timeout, delay, config.get("languages")), "pages": []}
     for page in config["pages"]:
         url = urljoin(base+"/", page["path"].lstrip("/"))
         fetched = fetch_text(url, agent, timeout)
@@ -360,7 +490,8 @@ def run_audit(config: dict) -> dict:
         elif fetched.get("content_type", "") not in ("text/html", "application/xhtml+xml"):
             record["error"] = "non_html_response"
         else:
-            record.update(analyze_html(fetched.get("body", ""), fetched.get("url", url), urlparse(base).netloc))
+            record.update(analyze_html(fetched.get("body", ""), fetched.get("url", url), urlparse(base).netloc,
+                                       page.get("kind"), config.get("quote_markers"), config.get("approved_sku_pattern")))
             if "noindex" in fetched.get("x_robots_tag", "").lower():
                 record["issues"].append("header_noindex_review")
         if record.get("status") != 200:
@@ -388,18 +519,27 @@ def to_markdown(report: dict) -> str:
     if robots:
         lines.append(f"| `robots.txt` | {robots.get('status')} | {', '.join(robots.get('sitemap_directives', [])) or robots.get('error', '')} |")
     for sm_url, row in discovery.get("sitemaps", {}).items():
-        notes = f"{row.get('type', '')} {row.get('url_count', '')} URLs {', '.join(row.get('issues', []))}".strip()
+        notes = f"{row.get('type', '')} {row.get('url_count', '')} URLs"
+        if row.get("type") == "urlset":
+            notes += f", /ar/ {row.get('arabic_locs', 0)}, hreflang {row.get('hreflang_links', 0)}"
+        notes = f"{notes} {', '.join(row.get('issues', []))}".strip()
         lines.append(f"| `{sm_url}` | {row.get('status')} | {(notes or row.get('error') or '').replace('|', '/')} |")
     if discovery.get("issues"):
         lines.extend(["", "**Site-level issues:** " + ", ".join(discovery["issues"])])
-    lines.extend(["", "## Page audit", "", "| URL | Lang | HTTP | Title | H1 | Issues |", "|---|---|---:|---|---|---|"])
+    lines.extend(["", "## Page audit", "",
+                  "| URL | Lang | HTTP | Arabic share | Title | H1 | Schema claims | Issues |",
+                  "|---|---|---:|---:|---|---|---|---|"])
     for p in report["pages"]:
         issues = [f"**{i}**" if i in CRITICAL_ISSUES else i for i in _sorted_issues(p.get("issues", []))]
-        lines.append("| {} | {} | {} | {} | {} | {} |".format(
+        facts = p.get("schema_facts") or {}
+        claims = ", ".join(facts.get("currencies", []) + facts.get("availability", []))
+        share = p.get("arabic_share")
+        lines.append("| {} | {} | {} | {} | {} | {} | {} | {} |".format(
             p["path"], p.get("html_lang") or p.get("lang") or "-", p.get("status"),
+            "-" if share is None else f"{share:.0%}",
             p.get("title", "-").replace("|", "/")[:70],
             "; ".join(p.get("h1", []))[:70].replace("|", "/"),
-            ", ".join(issues) or "—"))
+            claims or "—", ", ".join(issues) or "—"))
     lines.extend(["", "## Limitations", "", "Configured page sample only; no Google index status, Core Web Vitals, GA4 or AI citations are measured.",
                   "A missing title/meta warning does not automatically mean poor ranking; prioritize with traffic and conversions."])
     return "\n".join(lines)+"\n"

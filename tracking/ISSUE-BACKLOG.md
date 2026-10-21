@@ -87,17 +87,21 @@ Issue titles must include stable ID to avoid duplication. Each item is a deliver
 # Added 2026-10-21 after live audit (`reports/baseline-2026-10-21.md`) — do these before SEO-005
 
 ## SEO-021 · Arabic canonical fix in WPML (P0)
+> Acceptance superseded by `CODEX REVIEW` + `AGREED PLAN` on GitHub Issue #21.
 **Description:** `/ar/`, `/ar/our-lighting/`, `/ar/product/led-up-light/` declare `hreflang="ar"` but `rel=canonical` points to the English URL. Find the source (WPML SEO settings, theme or a filter in `porto-child`) and make each translation canonicalize to itself.
 **Acceptance:** audit reports zero `canonical_conflicts_with_hreflang` across all configured pages; hreflang pairs still reciprocal; verified on staging first; rollback recorded.
 
 ## SEO-022 · WPML-compatible SEO plugin (P0)
+> Acceptance superseded by `CODEX REVIEW` + `AGREED PLAN` on GitHub Issue #22.
 **Description:** No SEO plugin is active (no meta descriptions, site title = domain, `og:title` = `front`). Owner chooses Rank Math or Yoast; install on staging, set brand site name (Nassli LED / مصنع نسلي للإنارة), per-language titles and descriptions for the priority pages, multilingual sitemap, and hide generator version tags.
 **Acceptance:** owner decision recorded; no duplicate Organization/Product schema with WooCommerce; titles/meta present EN+AR on priority pages; audit shows no `generic_title`/`missing_meta_description` on them.
 
 ## SEO-023 · Sitemap cleanup (P0)
+> Acceptance superseded by `CODEX REVIEW` + `AGREED PLAN` on GitHub Issue #23.
 **Description:** Remove the 28 `porto_builder` template URLs and the user archive sitemap (exposes a WordPress login name); ensure Arabic URLs are listed.
 **Acceptance:** audit shows no `sitemap_lists_theme_templates` / `sitemap_exposes_user_archives`; Arabic URLs present; sitemap resubmitted in Search Console.
 
 ## SEO-024 · Product schema truthfulness across 70 products (P0)
+> Acceptance superseded by `CODEX REVIEW` + `AGREED PLAN` on GitHub Issue #24.
 **Description:** Product JSON-LD publishes `price: 0.00`, a placeholder SKU (`1234567812-1-1-…`) and a mismatched image. Set real order codes as SKU, drop Offer for quote-only products (or publish real prices only if management approves), fix featured images.
 **Acceptance:** audit shows no `schema_offer_price_zero` / `schema_sku_suspicious` on sampled products; Rich Results Test passes on 3 samples; sales engineer confirms SKU list.

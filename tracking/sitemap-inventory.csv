@@ -1,0 +1,12 @@
+section,url_count_2026-10-21,arabic_urls,proposed,reason,issue,owner_approved
+product,70,0,include (EN + approved AR translations),Core commercial pages; add AR only where translation is genuine (translation-matrix.csv),#23 #24,PENDING
+page,18,0,include after page-by-page review,Mixed: home/categories/contact are commercial; utility pages may not be,#23,PENDING
+product_cat,15,0,include,Category landing pages for buyers,#23 #11,PENDING
+project,9,0,include if publication permission confirmed,Case studies need client permission (SEO-013),#23 #13,PENDING
+faq,8,0,review separately,May be thin single-answer pages; decide with content owner — not silently excluded,#23,PENDING
+faq_cat,3,0,review separately,Taxonomy archives of FAQ; decide with faq,#23,PENDING
+post,4,0,review separately,Blog posts — keep if useful and current,#23,PENDING
+category,6,0,review separately,Blog category archives — often thin,#23,PENDING
+3d-flip-book,1,0,review separately,Digital catalogue viewer; check it has crawlable content,#23,PENDING
+porto_builder,28,0,exclude from sitemap only — KEEP the templates,Theme header/footer/product templates are needed to render the site but are not search landing pages,#23,PENDING
+users,1,0,exclude,Author archive is not a commercial page; public slug should not be advertised,#23,PENDING

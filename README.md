@@ -26,6 +26,7 @@
 | `STATUS.md` | أين وصلنا؟ ما الموانع؟ ما القرار التالي؟ |
 | `docs/WORKFLOW.md` | ترتيب المراجعة: Codex ← Claude ← تنفيذ Claude ← تأكيد Codex |
 | `docs/AGENT-PROMPTS.md` | طلبات جاهزة للصق في Codex وClaude |
+| `docs/OWNER-DECISIONS.md` | القرارات التي تنتظر المالك (إضافة SEO، سياسة الأسعار، SKU، staging) |
 | `docs/ROADMAP.md` | خارطة 90 يومًا وبوابات التسليم |
 | `docs/TECHNICAL-SEO.md` | الفهرسة والبيانات المنظمة واللغات والتحويل |
 | `docs/CONTENT-STRATEGY.md` | صفحات الحلول والمنتجات والمشاريع |
